@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathalee POS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Lockscreen Overlay -->
+    <div id="lockscreen" class="lockscreen">
+        <div class="lock-card">
+            <div class="lock-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <div class="lock-title">Terminal Locked</div>
+            <div class="lock-subtitle">Enter PIN to unlock (Default PINs: 1234, 0000)</div>
+            <input type="password" id="pinInput" class="pin-input" placeholder="••••" maxlength="4" autofocus>
+            <button onclick="unlockTerminal()" class="btn-unlock">Unlock Terminal</button>
+        </div>
+    </div>
+
+    <!-- HEADER: FUNCTION BUTTONS & NAVIGATION -->
+    <header>
+        <div class="logo-section">
+            <h1>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                Mathalee POS
+            </h1>
+            <span>Mathalee Holdings PLC</span>
+        </div>
+        
+        <div class="fkey-container">
+            <button class="f-btn brand-btn" onclick="triggerFunction('F1_Home')">
+                <span class="key">[Home]</span>
+                <span>Mathalee</span>
+            </button>            
+            <button class="f-btn" id="btn-f1" onclick="openModal('help-modal')">
+                <span class="key">F1</span>
+                <span>Help</span>
+            </button>
+            &nbsp;
+            <button class="f-btn" id="btn-f5" onclick="openModal('inventory-modal')">
+                <span class="key">F5</span>
+                <span>Buying</span>
+            </button>            
+             <button class="f-btn" id="btn-f3" onclick="openModal('inquiry-modal')">
+                <span class="key">F3</span>
+                <span>Selling</span>
+            </button>
+            <button class="f-btn" id="btn-f4" onclick="openModal('customer-modal')">
+                <span class="key">F4</span>
+                <span>Billing</span>
+            </button> 
+            &nbsp;
+
+            <button class="f-btn" id="btn-f2" onclick="openModal('drawer-modal')">
+                <span class="key">F2</span>
+                <span>Product</span>
+            </button>
+            
+            <button class="f-btn highlight-btn" id="btn-f6" onclick="openModal('user-mgmt-modal')">
+                <span class="key">F6</span>
+                <span>Users</span>
+            </button>
+            <!-- <button class="f-btn" id="btn-f7" onclick="triggerSubTotal()">
+                <span class="key">F7</span>
+                <span>Sub Total</span>
+            </button>
+            <button class="f-btn" id="btn-f8" onclick="triggerTender()">
+                <span class="key">F8</span>
+                <span>Checkout</span>
+            </button>
+            <button class="f-btn" id="btn-f9" onclick="triggerRefund()">
+                <span class="key">F9</span>
+                <span>Refund</span>
+            </button> -->
+            <button class="f-btn highlight-btn" id="btn-f10" onclick="openModal('reports-modal')">
+                <span class="key">F10</span>
+                <span>Reports</span>
+            </button>
+            <!-- <button class="f-btn" id="btn-f11" onclick="triggerLoyalty()">
+                <span class="key">F11</span>
+                <span>Loyalty</span>
+            </button> -->
+            <button class="f-btn" id="btn-f12" onclick="lockTerminal()">
+                <span class="key">F12</span>
+                <span>Log off</span>
+            </button>
+        </div>
+
+        <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+            <svg id="theme-sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <svg id="theme-moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+    </header>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="pos-workspace">
+        <div class="left-pane">
+            <div class="grid-container">
+                <table class="pos-table" id="items-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">No</th>
+                            <th style="width: 150px;">Item Code</th>
+                            <th>Description</th>
+                            <th class="num-col" style="width: 120px;">Unit Price</th>
+                            <th class="num-col" style="width: 100px;">Quantity</th>
+                            <th class="num-col" style="width: 140px;">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Dynamic cart items will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="scanner-controls" id="scanner-container">
+                <div class="input-group">
+                    <label for="itemCode">Item Code</label>
+                    <input type="text" id="itemCode" placeholder="Scan barcode or type code..." autocomplete="off">
+                </div>
+                <div class="input-group small-input">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" value="1.000" step="0.001" min="0.001">
+                </div>
+                <button class="scan-btn" onclick="handleScan()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    Scan / Add
+                </button>
+                <button class="scan-btn btn-danger" onclick="deleteSelectedRow()" title="Delete Selected Item (Delete)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    Void Row
+                </button>
+            </div>
+        </div>
+
+        <div class="right-pane">
+            <div class="meta-section">
+                <div class="meta-row">
+                    <span class="meta-location" id="meta-store">Athurugiriya</span>
+                    <span class="meta-phone" id="meta-phone">0112-494896</span>
+                </div>
+                <div class="meta-time-container">
+                    <span>Date:</span>
+                    <span class="live-time" id="meta-time">12:00:00 PM</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section info-card">
+                <span class="card-label">User / Role</span>
+                <span class="card-value highlight" id="cashier-name">KANCHANA (Admin)</span>
+            </div>
+
+            <div class="sidebar-section info-card">
+                <span class="card-label">Bill / Invoice</span>
+                <span class="card-value" id="invoice-number">119</span>
+            </div>
+
+            <div class="sidebar-section info-card">
+                <span class="card-label">No of Lines</span>
+                <span class="card-value" id="lines-count">0</span>
+            </div>
+
+            <div class="sidebar-section info-card">
+                <span class="card-label">Sub Total</span>
+            </div>
+
+            <div class="total-section">
+                <div class="grand-total-box">
+                    <span class="total-label">Grand Total LKR</span>
+                    <span class="total-amount" id="grand-total">0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-left">
+            <span>&copy; Mathalee Holdings PLC. - 2020-2026 V 1.1.1.1</span>
+        </div>
+        <div class="footer-right">
+            <span>Terminal ID: <span id="terminal-id">P034</span></span>
+        </div>
+    </footer>
+
+    <!-- MODAL: HELP -->
+    <div id="help-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>POS Shortcuts &amp; Help</h3>
+                <button class="close-modal" onclick="closeModal('help-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-grid">
+                    <span class="shortcut">F1</span><span class="desc">Show help shortcuts</span>
+                    <span class="shortcut">F2</span><span class="desc">Open virtual Cash Drawer</span>
+                    <span class="shortcut">F3</span><span class="desc">Item code inquiry catalog</span>
+                    <span class="shortcut">F4</span><span class="desc">Link Customer loyalty account</span>
+                    <span class="shortcut">F5</span><span class="desc">Inventory &amp; Product Search</span>
+                    <span class="shortcut">F6</span><span class="desc">User Management &amp; Access</span>
+                    <span class="shortcut">F7</span><span class="desc">Calculate subtotal summary</span>
+                    <span class="shortcut">F8</span><span class="desc">Process payment (Checkout)</span>
+                    <span class="shortcut">F9</span><span class="desc">Process product refund</span>
+                    <span class="shortcut">F10</span><span class="desc">Financial &amp; Sales Reports</span>
+                    <span class="shortcut">Delete</span><span class="desc">Void selected row from cart</span>
+                    <span class="shortcut">F12</span><span class="desc">Lock terminal screen / Log off</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('help-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CASH DRAWER -->
+    <div id="drawer-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cash Drawer Controller</h3>
+                <button class="close-modal" onclick="closeModal('drawer-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="cash-drawer-animation">
+                    <div id="drawer-visual" class="drawer-visual">
+                        <div class="keyhole"></div>
+                        <div class="handle"></div>
+                    </div>
+                    <div class="drawer-status-text" id="drawer-status">DRAWER LOCKED</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="drawer-action-btn" class="scan-btn" onclick="toggleDrawerState()">Open Drawer</button>
+                <button class="btn-secondary" onclick="closeModal('drawer-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: INQUIRY -->
+    <div id="inquiry-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Item Inquiry Catalog</h3>
+                <button class="close-modal" onclick="closeModal('inquiry-modal')">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height: 350px; overflow-y: auto;">
+                <p style="margin-bottom: 12px; font-size: 0.85rem; color: var(--text-muted);">Double click any product below to load into the scanner.</p>
+                <table class="pos-table" style="font-size: 0.8rem;">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Description</th>
+                            <th class="num-col">Stock</th>
+                            <th class="num-col">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catalog-list">
+                        <!-- Catalog injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('inquiry-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: INVENTORY MANAGEMENT & ITEM CREATION (F5) -->
+    <div id="inventory-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>Inventory Management &amp; Add Item</h3>
+                <button class="close-modal" onclick="closeModal('inventory-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="tab-header">
+                    <button class="tab-btn active" onclick="switchTab('inv-list-tab', this)">Inventory List</button>
+                    <button class="tab-btn" onclick="switchTab('inv-add-tab', this)">+ Add New Item</button>
+                </div>
+
+                <div id="inv-list-tab" class="tab-content active">
+                    <div class="input-group" style="margin-bottom: 12px;">
+                        <input type="text" id="inventorySearchQuery" placeholder="Search by item code or description..." oninput="filterInventoryList()">
+                    </div>
+                    <div style="max-height: 250px; overflow-y: auto;">
+                        <table class="pos-table" style="font-size: 0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Description</th>
+                                    <th class="num-col">Stock Qty</th>
+                                    <th class="num-col">Unit Price</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body">
+                                <!-- Dynamic Inventory Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="inv-add-tab" class="tab-content">
+                    <form id="addItemForm" onsubmit="handleAddNewItem(event)" class="form-grid">
+                        <div class="input-group">
+                            <label for="newCode">Item Code / Barcode</label>
+                            <input type="text" id="newCode" required placeholder="e.g. PR99011">
+                        </div>
+                        <div class="input-group">
+                            <label for="newDesc">Description / Item Name</label>
+                            <input type="text" id="newDesc" required placeholder="e.g. SUGAR WHITE 1KG">
+                        </div>
+                        <div class="input-group">
+                            <label for="newPrice">Unit Selling Price (LKR)</label>
+                            <input type="number" id="newPrice" step="0.01" required placeholder="0.00">
+                        </div>
+                        <div class="input-group">
+                            <label for="newStock">Initial Stock Quantity</label>
+                            <input type="number" id="newStock" step="0.001" required placeholder="100.000">
+                        </div>
+                        <div style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                            <button type="submit" class="scan-btn">Save Product</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('inventory-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: USER REGISTRATION & ACCESS MANAGEMENT (F6) -->
+    <div id="user-mgmt-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>User Registration &amp; Roles</h3>
+                <button class="close-modal" onclick="closeModal('user-mgmt-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="tab-header">
+                    <button class="tab-btn active" onclick="switchTab('user-list-tab', this)">System Users</button>
+                    <button class="tab-btn" onclick="switchTab('user-add-tab', this)">+ Register User</button>
+                </div>
+
+                <div id="user-list-tab" class="tab-content active">
+                    <div style="max-height: 250px; overflow-y: auto;">
+                        <table class="pos-table" style="font-size: 0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th>PIN Code</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-table-body">
+                                <!-- Dynamic Users Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="user-add-tab" class="tab-content">
+                    <form id="addUserForm" onsubmit="handleAddNewUser(event)" class="form-grid">
+                        <div class="input-group">
+                            <label for="newUsername">Username / Operator Name</label>
+                            <input type="text" id="newUsername" required placeholder="e.g. KASUN">
+                        </div>
+                        <div class="input-group">
+                            <label for="newUserRole">Role / Privilege Level</label>
+                            <select id="newUserRole" class="form-select">
+                                <option value="Cashier">Cashier</option>
+                                <option value="Supervisor">Supervisor</option>
+                                <option value="Admin">Administrator</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="newUserPin">4-Digit Security PIN</label>
+                            <input type="password" id="newUserPin" maxlength="4" required placeholder="••••">
+                        </div>
+                        <div style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                            <button type="submit" class="scan-btn">Register User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('user-mgmt-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: FINANCIAL & SALES REPORTS (F10) -->
+    <div id="reports-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>Financial &amp; Executive Analytics Dashboard</h3>
+                <button class="close-modal" onclick="closeModal('reports-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <span class="kpi-title">Gross Sales Total</span>
+                        <span class="kpi-value" id="rpt-total-sales">LKR 0.00</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-title">Completed Bills</span>
+                        <span class="kpi-value" id="rpt-bills-count">0</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-title">Items Sold</span>
+                        <span class="kpi-value" id="rpt-items-sold">0.000</span>
+                    </div>
+                </div>
+
+                <p style="margin-top: 15px; font-weight:700; font-size:0.85rem; color: var(--text-muted);">Completed Sales Audit Log:</p>
+                <div style="max-height: 200px; overflow-y: auto; margin-top: 6px;">
+                    <table class="pos-table" style="font-size: 0.8rem;">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Timestamp</th>
+                                <th class="num-col">Lines</th>
+                                <th class="num-col">Amount Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-history-body">
+                            <!-- Completed Transaction Logs -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="scan-btn" onclick="exportReportSummary()">Print Z-Report</button>
+                <button class="btn-secondary" onclick="closeModal('reports-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CUSTOMER LOYALTY (F4 & F11) -->
+    <div id="customer-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Customer Loyalty Profile</h3>
+                <button class="close-modal" onclick="closeModal('customer-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group" style="margin-bottom: 15px;">
+                    <label for="custPhone">Loyalty / Phone Number</label>
+                    <input type="text" id="custPhone" placeholder="e.g. 0771234567" style="font-size: 1.2rem;">
+                </div>
+                <div id="custDetails" style="display: none; background: var(--surface-secondary); padding: 12px; border-radius: 6px; border: 1px solid var(--border);">
+                    <div style="font-size: 0.9rem; font-weight: 700; color: var(--primary);" id="custName">John Doe</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Points Balance: <span id="custPoints" style="font-weight: 700; color: var(--accent);">340</span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="scan-btn" onclick="lookupCustomer()">Search Profile</button>
+                <button class="btn-secondary" onclick="closeModal('customer-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data script must load before app logic script -->
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
